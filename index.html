@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Advanced Calculator with Voice</title>
+  <title>ماشین حساب با صدا</title>
   <style>
     body {
       font-family: Arial;
@@ -90,31 +90,32 @@
 <body>
 
   <div class="calculator">
-    <button class="dark-toggle" onclick="toggleDarkMode()">🌙 Dark Mode</button>
+    <button class="dark-toggle" onclick="toggleDarkMode()">🌙 حالت تاریک</button>
 
-    <h2>Calculator</h2>
+    <h2>ماشین حساب</h2>
 
-    <input type="number" id="num1" placeholder="First number">
-    <input type="number" id="num2" placeholder="Second number">
+    <input type="number" id="num1" placeholder="عدد اول">
+    <input type="number" id="num2" placeholder="عدد دوم">
 
     <div class="buttons">
       <button onclick="calculate('+')">➕</button>
       <button onclick="calculate('-')">➖</button>
       <button onclick="calculate('*')">×</button>
       <button onclick="calculate('/')">÷</button>
-      <button onclick="startVoice()">🎤 Voice</button>
+      <button onclick="startVoice()">🎤 صدا</button>
     </div>
 
-    <div id="result">Result:</div>
+    <div id="result">نتیجه:</div>
 
     <div class="history">
-      <strong>History:</strong>
+      <strong>تاریخچه:</strong>
       <div id="historyList"></div>
     </div>
   </div>
 
   <script>
-    // Normal calculate function
+    // -----------------------------------
+    // Normal calculator function
     function calculate(operator, n1Input, n2Input) {
       const n1 = n1Input !== undefined ? parseFloat(n1Input) : parseFloat(document.getElementById("num1").value);
       const n2 = n2Input !== undefined ? parseFloat(n2Input) : parseFloat(document.getElementById("num2").value);
@@ -122,22 +123,22 @@
       const history = document.getElementById("historyList");
 
       if (isNaN(n1) || isNaN(n2)) {
-        resultDiv.innerText = "❌ Please enter both numbers";
+        resultDiv.innerText = "❌ لطفاً هر دو عدد را وارد کنید";
         return;
       }
 
       let result;
       let symbol;
 
-      if (operator === '+') { result = n1 + n2; symbol = "+"; }
-      else if (operator === '-') { result = n1 - n2; symbol = "-"; }
+      if (operator === '+') { result = n1 + n2; symbol = "➕"; }
+      else if (operator === '-') { result = n1 - n2; symbol = "➖"; }
       else if (operator === '*') { result = n1 * n2; symbol = "×"; }
       else if (operator === '/') {
-        if (n2 === 0) { resultDiv.innerText = "❌ Cannot divide by zero"; return; }
+        if (n2 === 0) { resultDiv.innerText = "❌ تقسیم بر صفر مجاز نیست"; return; }
         result = n1 / n2; symbol = "÷";
       }
 
-      resultDiv.innerText = "Result: " + result;
+      resultDiv.innerText = "نتیجه: " + result;
 
       const record = document.createElement("p");
       record.innerText = `${n1} ${symbol} ${n2} = ${result}`;
@@ -149,9 +150,10 @@
       document.body.classList.toggle("dark");
     }
 
-    // ------------------ VOICE FEATURE ------------------
+    // -----------------------------------
+    // Voice recognition (Persian)
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = 'en-US';
+    recognition.lang = 'fa-IR'; // Persian
     recognition.continuous = false;
 
     recognition.onresult = function(event) {
@@ -165,13 +167,13 @@
 
     function processVoiceCommand(command) {
       const numbers = command.match(/\d+/g);
-      if(!numbers || numbers.length < 2) return alert("Could not recognize numbers!");
+      if(!numbers || numbers.length < 2) return alert("اعداد تشخیص داده نشد!");
 
-      if(command.includes("add") || command.includes("plus")) calculate('+', numbers[0], numbers[1]);
-      else if(command.includes("subtract") || command.includes("minus")) calculate('-', numbers[0], numbers[1]);
-      else if(command.includes("multiply") || command.includes("times")) calculate('*', numbers[0], numbers[1]);
-      else if(command.includes("divide") || command.includes("over")) calculate('/', numbers[0], numbers[1]);
-      else alert("Command not recognized. Try add, subtract, multiply, or divide.");
+      if(command.includes("جمع")) calculate('+', numbers[0], numbers[1]);
+      else if(command.includes("تفریق") || command.includes("منهای")) calculate('-', numbers[0], numbers[1]);
+      else if(command.includes("ضرب")) calculate('*', numbers[0], numbers[1]);
+      else if(command.includes("تقسیم")) calculate('/', numbers[0], numbers[1]);
+      else alert("دستور شناخته نشد. لطفاً از جمع، تفریق، ضرب یا تقسیم استفاده کنید.");
     }
   </script>
 
