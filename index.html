@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Advanced Calculator</title>
+  <title>Advanced Calculator with Voice</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: Arial;
       background: #eaeaea;
       display: flex;
       justify-content: center;
@@ -102,6 +102,7 @@
       <button onclick="calculate('-')">➖</button>
       <button onclick="calculate('*')">×</button>
       <button onclick="calculate('/')">÷</button>
+      <button onclick="startVoice()">🎤 Voice</button>
     </div>
 
     <div id="result">Result:</div>
@@ -113,9 +114,10 @@
   </div>
 
   <script>
-    function calculate(operator) {
-      const n1 = parseFloat(document.getElementById("num1").value);
-      const n2 = parseFloat(document.getElementById("num2").value);
+    // Normal calculate function
+    function calculate(operator, n1Input, n2Input) {
+      const n1 = n1Input !== undefined ? parseFloat(n1Input) : parseFloat(document.getElementById("num1").value);
+      const n2 = n2Input !== undefined ? parseFloat(n2Input) : parseFloat(document.getElementById("num2").value);
       const resultDiv = document.getElementById("result");
       const history = document.getElementById("historyList");
 
@@ -127,22 +129,12 @@
       let result;
       let symbol;
 
-      if (operator === '+') {
-        result = n1 + n2;
-        symbol = "+";
-      } else if (operator === '-') {
-        result = n1 - n2;
-        symbol = "-";
-      } else if (operator === '*') {
-        result = n1 * n2;
-        symbol = "×";
-      } else if (operator === '/') {
-        if (n2 === 0) {
-          resultDiv.innerText = "❌ Cannot divide by zero";
-          return;
-        }
-        result = n1 / n2;
-        symbol = "÷";
+      if (operator === '+') { result = n1 + n2; symbol = "+"; }
+      else if (operator === '-') { result = n1 - n2; symbol = "-"; }
+      else if (operator === '*') { result = n1 * n2; symbol = "×"; }
+      else if (operator === '/') {
+        if (n2 === 0) { resultDiv.innerText = "❌ Cannot divide by zero"; return; }
+        result = n1 / n2; symbol = "÷";
       }
 
       resultDiv.innerText = "Result: " + result;
@@ -152,8 +144,34 @@
       history.prepend(record);
     }
 
+    // Dark mode toggle
     function toggleDarkMode() {
       document.body.classList.toggle("dark");
+    }
+
+    // ------------------ VOICE FEATURE ------------------
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = 'en-US';
+    recognition.continuous = false;
+
+    recognition.onresult = function(event) {
+      const speech = event.results[0][0].transcript.toLowerCase();
+      processVoiceCommand(speech);
+    }
+
+    function startVoice() {
+      recognition.start();
+    }
+
+    function processVoiceCommand(command) {
+      const numbers = command.match(/\d+/g);
+      if(!numbers || numbers.length < 2) return alert("Could not recognize numbers!");
+
+      if(command.includes("add") || command.includes("plus")) calculate('+', numbers[0], numbers[1]);
+      else if(command.includes("subtract") || command.includes("minus")) calculate('-', numbers[0], numbers[1]);
+      else if(command.includes("multiply") || command.includes("times")) calculate('*', numbers[0], numbers[1]);
+      else if(command.includes("divide") || command.includes("over")) calculate('/', numbers[0], numbers[1]);
+      else alert("Command not recognized. Try add, subtract, multiply, or divide.");
     }
   </script>
 
