@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>ماشین حساب پیشرفته با صدا</title>
+
   <style>
     body {
       font-family: Arial;
@@ -56,6 +57,16 @@
       opacity: 0.8;
     }
 
+    /* دکمه صدا */
+    .voice-btn {
+      background: purple !important;
+      color: white;
+    }
+
+    .voice-btn:hover {
+      background: #6a0dad !important;
+    }
+
     .dark-toggle {
       margin-bottom: 10px;
       cursor: pointer;
@@ -85,6 +96,7 @@
     }
   </style>
 </head>
+
 <body>
 
 <div class="calculator">
@@ -100,7 +112,7 @@
     <button onclick="calculate('-')">➖</button>
     <button onclick="calculate('*')">×</button>
     <button onclick="calculate('/')">÷</button>
-    <button onclick="startVoice()">🎤 صدا</button>
+    <button class="voice-btn" onclick="startVoice()">🎤</button>
   </div>
 
   <div id="result">نتیجه:</div>
@@ -112,84 +124,104 @@
 </div>
 
 <script>
-  // -----------------------------------
-  // Persian numbers mapping 0-20
-  const persianNumbers = {
-    "صفر":0,"یک":1,"دو":2,"سه":3,"چهار":4,"پنج":5,"شش":6,"هفت":7,"هشت":8,"نه":9,
-    "ده":10,"یازده":11,"دوازده":12,"سیزده":13,"چهارده":14,"پانزده":15,"شانزده":16,
-    "هفده":17,"هجده":18,"نوزده":19,"بیست":20
-  };
+/* -----------------------------
+   ماشین حساب معمولی
+------------------------------ */
+function calculate(operator, n1Input, n2Input, isVoice=false) {
+  const n1 = n1Input ?? parseFloat(document.getElementById("num1").value);
+  const n2 = n2Input ?? parseFloat(document.getElementById("num2").value);
+  const resultDiv = document.getElementById("result");
+  const history = document.getElementById("historyList");
 
-  // -----------------------------------
-  // Normal calculator function with colored results
-  function calculate(operator, n1Input, n2Input, isVoice=false) {
-    const n1 = n1Input !== undefined ? parseFloat(n1Input) : parseFloat(document.getElementById("num1").value);
-    const n2 = n2Input !== undefined ? parseFloat(n2Input) : parseFloat(document.getElementById("num2").value);
-    const resultDiv = document.getElementById("result");
-    const history = document.getElementById("historyList");
+  if (isNaN(n1) || isNaN(n2)) {
+    resultDiv.innerText = "❌ لطفاً هر دو عدد را وارد کنید";
+    resultDiv.style.color = "red";
+    return;
+  }
 
-    if(isNaN(n1) || isNaN(n2)){
-      resultDiv.innerText = "❌ لطفاً هر دو عدد را وارد کنید";
+  let result, color, symbol;
+
+  if (operator === '+') {
+    result = n1 + n2; color = "green"; symbol = "+";
+  }
+  else if (operator === '-') {
+    result = n1 - n2; color = "pink"; symbol = "-";
+  }
+  else if (operator === '*') {
+    result = n1 * n2; color = "orange"; symbol = "×";
+  }
+  else if (operator === '/') {
+    if (n2 === 0) {
+      resultDiv.innerText = "❌ تقسیم بر صفر مجاز نیست";
       resultDiv.style.color = "red";
       return;
     }
-
-    let result, color, symbol;
-
-    if(operator === '+') { result = n1+n2; color="green"; symbol="➕"; }
-    else if(operator === '-') { result = n1-n2; color="pink"; symbol="➖"; }
-    else if(operator === '*') { result = n1*n2; color="orange"; symbol="×"; }
-    else if(operator === '/') { 
-      if(n2===0){ resultDiv.innerText="❌ تقسیم بر صفر مجاز نیست"; resultDiv.style.color="red"; return; }
-      result = n1/n2; color="blue"; symbol="÷"; 
-    }
-
-    // Voice results in purple
-    if(isVoice) color="purple";
-
-    resultDiv.innerText = "نتیجه: " + result;
-    resultDiv.style.color = color;
-
-    const record = document.createElement("p");
-    record.innerText = `${n1} ${symbol} ${n2} = ${result}`;
-    record.style.color=color;
-    history.prepend(record);
+    result = n1 / n2; color = "blue"; symbol = "÷";
   }
 
-  // -----------------------------------
-  // Dark mode
-  function toggleDarkMode(){ document.body.classList.toggle("dark"); }
+  if (isVoice) color = "purple";
 
-  // -----------------------------------
-  // Voice recognition in Persian
-  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = 'fa-IR';
-  recognition.continuous = false;
+  resultDiv.innerText = "نتیجه: " + result;
+  resultDiv.style.color = color;
 
-  recognition.onresult = function(event){
-    const speech = event.results[0][0].transcript.toLowerCase();
-    processVoiceCommand(speech);
+  const record = document.createElement("p");
+  record.innerText = `${n1} ${symbol} ${n2} = ${result}`;
+  record.style.color = color;
+  history.prepend(record);
+}
+
+/* -----------------------------
+   حالت تاریک
+------------------------------ */
+function toggleDarkMode() {
+  document.body.classList.toggle("dark");
+}
+
+/* -----------------------------
+   تشخیص صدا (فارسی)
+------------------------------ */
+function convertPersianDigitsToEnglish(str) {
+  const map = { '۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9' };
+  return str.replace(/[۰-۹]/g, d => map[d]);
+}
+
+const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+recognition.lang = 'fa-IR';
+
+function startVoice() {
+  recognition.start();
+}
+
+recognition.onresult = function(event) {
+  let command = event.results[0][0].transcript;
+  processVoiceCommand(command);
+};
+
+function processVoiceCommand(command) {
+  command = convertPersianDigitsToEnglish(command.toLowerCase());
+
+  const numbers = command.match(/\d+/g)?.map(Number);
+
+  if (!numbers || numbers.length < 2) {
+    alert("❌ عددها تشخیص داده نشد");
+    return;
   }
 
-  function startVoice(){ recognition.start(); }
+  if (command.includes("ضرب") || command.includes("ضربدر") || command.includes("×"))
+    calculate('*', numbers[0], numbers[1], true);
 
-  function processVoiceCommand(command){
-    const words = command.split(" ");
-    let numbers = [];
+  else if (command.includes("جمع") || command.includes("+"))
+    calculate('+', numbers[0], numbers[1], true);
 
-    for(let word of words){
-      if(persianNumbers[word]!==undefined) numbers.push(persianNumbers[word]);
-    }
+  else if (command.includes("تفریق") || command.includes("منهای") || command.includes("-"))
+    calculate('-', numbers[0], numbers[1], true);
 
-    if(numbers.length<2){ alert("اعداد تشخیص داده نشد!"); return; }
+  else if (command.includes("تقسیم") || command.includes("÷"))
+    calculate('/', numbers[0], numbers[1], true);
 
-    if(command.includes("جمع")) calculate('+', numbers[0], numbers[1], true);
-    else if(command.includes("تفریق") || command.includes("منهای")) calculate('-', numbers[0], numbers[1], true);
-    else if(command.includes("ضرب")) calculate('*', numbers[0], numbers[1], true);
-    else if(command.includes("تقسیم")) calculate('/', numbers[0], numbers[1], true);
-    else alert("دستور شناخته نشد. لطفاً از جمع، تفریق، ضرب یا تقسیم استفاده کنید.");
-  }
-
+  else
+    alert("❌ دستور شناخته نشد");
+}
 </script>
 
 </body>
