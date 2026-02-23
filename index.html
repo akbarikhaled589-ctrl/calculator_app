@@ -1,228 +1,110 @@
 <!DOCTYPE html>
 <html lang="fa">
 <head>
-  <meta charset="UTF-8">
-  <title>ماشین حساب پیشرفته با صدا</title>
-
-  <style>
-    body {
-      font-family: Arial;
-      background: #eaeaea;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      transition: 0.3s;
-    }
-
-    body.dark {
-      background: #121212;
-      color: white;
-    }
-
-    .calculator {
-      background: white;
-      padding: 25px;
-      border-radius: 10px;
-      width: 350px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.2);
-      transition: 0.3s;
-    }
-
-    body.dark .calculator {
-      background: #1e1e1e;
-    }
-
-    input {
-      padding: 10px;
-      margin: 5px;
-      width: 90%;
-      font-size: 16px;
-    }
-
-    .buttons button {
-      padding: 12px;
-      margin: 5px;
-      width: 60px;
-      font-size: 18px;
-      cursor: pointer;
-      border: none;
-      border-radius: 6px;
-      background: #4CAF50;
-      color: white;
-      transition: 0.3s;
-    }
-
-    .buttons button:hover {
-      opacity: 0.8;
-    }
-
-    /* دکمه صدا */
-    .voice-btn {
-      background: purple !important;
-      color: white;
-    }
-
-    .voice-btn:hover {
-      background: #6a0dad !important;
-    }
-
-    .dark-toggle {
-      margin-bottom: 10px;
-      cursor: pointer;
-      background: #333;
-      color: white;
-      border: none;
-      padding: 8px;
-      border-radius: 5px;
-    }
-
-    #result {
-      margin-top: 10px;
-      font-weight: bold;
-      font-size: 18px;
-    }
-
-    .history {
-      margin-top: 15px;
-      text-align: left;
-      font-size: 14px;
-      max-height: 120px;
-      overflow-y: auto;
-    }
-
-    .history p {
-      margin: 4px 0;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>جمع و لیست اعداد</title>
+    <style>
+        body {
+            font-family: 'Tahoma', sans-serif;
+            background: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            width: 400px;
+        }
+        input {
+            padding: 10px;
+            width: 80%;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .result, .number-list {
+            margin-top: 15px;
+            font-size: 16px;
+            color: #333;
+        }
+        .number-list {
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .number-item {
+            padding: 3px 0;
+        }
+    </style>
 </head>
-
 <body>
+    <div class="container">
+        <h2>جمع و لیست اعداد</h2>
+        <input type="text" id="numberInput" placeholder="عدد را وارد کنید">
+        <button onclick="addNumber()">اضافه کردن</button>
+        <div class="number-list" id="numberList"></div>
+        <div class="result" id="result">جمع: 0</div>
+    </div>
 
-<div class="calculator">
-  <button class="dark-toggle" onclick="toggleDarkMode()">🌙 حالت تاریک</button>
+    <script>
+        let numbers = [];
 
-  <h2>ماشین حساب</h2>
+        function addNumber() {
+            const input = document.getElementById('numberInput');
+            const value = input.value.trim();
 
-  <input type="number" id="num1" placeholder="عدد اول">
-  <input type="number" id="num2" placeholder="عدد دوم">
+            if(value === '') {
+                alert('لطفاً عدد وارد کنید');
+                return;
+            }
 
-  <div class="buttons">
-    <button onclick="calculate('+')">➕</button>
-    <button onclick="calculate('-')">➖</button>
-    <button onclick="calculate('*')">×</button>
-    <button onclick="calculate('/')">÷</button>
-    <button class="voice-btn" onclick="startVoice()">🎤</button>
-  </div>
+            // Support multiple numbers separated by comma
+            const parts = value.split(',').map(n => parseFloat(n.trim()));
+            let validNumbers = parts.filter(n => !isNaN(n));
 
-  <div id="result">نتیجه:</div>
+            if(validNumbers.length === 0) {
+                alert('لطفاً عدد معتبر وارد کنید');
+                return;
+            }
 
-  <div class="history">
-    <strong>تاریخچه:</strong>
-    <div id="historyList"></div>
-  </div>
-</div>
+            numbers = numbers.concat(validNumbers);
+            updateListAndSum();
+            input.value = '';
+        }
 
-<script>
-/* -----------------------------
-   ماشین حساب معمولی
------------------------------- */
-function calculate(operator, n1Input, n2Input, isVoice=false) {
-  const n1 = n1Input ?? parseFloat(document.getElementById("num1").value);
-  const n2 = n2Input ?? parseFloat(document.getElementById("num2").value);
-  const resultDiv = document.getElementById("result");
-  const history = document.getElementById("historyList");
+        function updateListAndSum() {
+            const listDiv = document.getElementById('numberList');
+            listDiv.innerHTML = '';
+            numbers.forEach((num, index) => {
+                const div = document.createElement('div');
+                div.className = 'number-item';
+                div.innerText = `${index + 1}. ${num}`;
+                listDiv.appendChild(div);
+            });
 
-  if (isNaN(n1) || isNaN(n2)) {
-    resultDiv.innerText = "❌ لطفاً هر دو عدد را وارد کنید";
-    resultDiv.style.color = "red";
-    return;
-  }
-
-  let result, color, symbol;
-
-  if (operator === '+') {
-    result = n1 + n2; color = "green"; symbol = "+";
-  }
-  else if (operator === '-') {
-    result = n1 - n2; color = "pink"; symbol = "-";
-  }
-  else if (operator === '*') {
-    result = n1 * n2; color = "orange"; symbol = "×";
-  }
-  else if (operator === '/') {
-    if (n2 === 0) {
-      resultDiv.innerText = "❌ تقسیم بر صفر مجاز نیست";
-      resultDiv.style.color = "red";
-      return;
-    }
-    result = n1 / n2; color = "blue"; symbol = "÷";
-  }
-
-  if (isVoice) color = "purple";
-
-  resultDiv.innerText = "نتیجه: " + result;
-  resultDiv.style.color = color;
-
-  const record = document.createElement("p");
-  record.innerText = `${n1} ${symbol} ${n2} = ${result}`;
-  record.style.color = color;
-  history.prepend(record);
-}
-
-/* -----------------------------
-   حالت تاریک
------------------------------- */
-function toggleDarkMode() {
-  document.body.classList.toggle("dark");
-}
-
-/* -----------------------------
-   تشخیص صدا (فارسی)
------------------------------- */
-function convertPersianDigitsToEnglish(str) {
-  const map = { '۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9' };
-  return str.replace(/[۰-۹]/g, d => map[d]);
-}
-
-const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-recognition.lang = 'fa-IR';
-
-function startVoice() {
-  recognition.start();
-}
-
-recognition.onresult = function(event) {
-  let command = event.results[0][0].transcript;
-  processVoiceCommand(command);
-};
-
-function processVoiceCommand(command) {
-  command = convertPersianDigitsToEnglish(command.toLowerCase());
-
-  const numbers = command.match(/\d+/g)?.map(Number);
-
-  if (!numbers || numbers.length < 2) {
-    alert("❌ عددها تشخیص داده نشد");
-    return;
-  }
-
-  if (command.includes("ضرب") || command.includes("ضربدر") || command.includes("×"))
-    calculate('*', numbers[0], numbers[1], true);
-
-  else if (command.includes("جمع") || command.includes("+"))
-    calculate('+', numbers[0], numbers[1], true);
-
-  else if (command.includes("تفریق") || command.includes("منهای") || command.includes("-"))
-    calculate('-', numbers[0], numbers[1], true);
-
-  else if (command.includes("تقسیم") || command.includes("÷"))
-    calculate('/', numbers[0], numbers[1], true);
-
-  else
-    alert("❌ دستور شناخته نشد");
-}
-</script>
-
+            const sum = numbers.reduce((a,b) => a+b, 0);
+            document.getElementById('result').innerText = 'جمع: ' + sum;
+        }
+    </script>
 </body>
 </html>
